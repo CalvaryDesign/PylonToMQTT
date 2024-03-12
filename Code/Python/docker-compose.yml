@@ -1,8 +1,7 @@
 version: "3"
 services:
-  pylon_to_mqtt:
-    container_name: pylon_to_mqtt
-    image: pylon_to_mqtt
+  bms_lv:
+    container_name: pylon_to_mqtt_lv
     restart: unless-stopped
     build: .
     network_mode: host
@@ -12,10 +11,29 @@ services:
     environment:
       - LOGLEVEL=DEBUG
       - PYLON_PORT=/dev/bms_lv
-      - RACK_NAME=Main
+      - RACK_NAME=lv
       - MQTT_HOST=localhost
       - MQTT_PORT=1883
-      - MQTT_ROOT=PylonToMQTT
+      - MQTT_ROOT=bms
+      - MQTT_USER=
+      - MQTT_PASS=
+      - PUBLISH_RATE=5
+
+  bms_hv:
+    container_name: pylon_to_mqtt_hv
+    restart: unless-stopped
+    build: .
+    network_mode: host
+    volumes:
+      - /dev/bms_hv:/dev/bms_hv
+    privileged: true
+    environment:
+      - LOGLEVEL=DEBUG
+      - PYLON_PORT=/dev/bms_hv
+      - RACK_NAME=hv
+      - MQTT_HOST=localhost
+      - MQTT_PORT=1883
+      - MQTT_ROOT=bms
       - MQTT_USER=
       - MQTT_PASS=
       - PUBLISH_RATE=5

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-# --------------------------------------------------------------------------- # 
+# --------------------------------------------------------------------------- #
 # Handle creating the Json packaging of the Pylon data.
-# 
-# --------------------------------------------------------------------------- # 
+#
+# --------------------------------------------------------------------------- #
 
 
 import json
@@ -11,20 +11,24 @@ import logging
 
 log = logging.getLogger("PylonToMQTT")
 
-# --------------------------------------------------------------------------- # 
+# --------------------------------------------------------------------------- #
 # Handle creating the Json for Readings
-# --------------------------------------------------------------------------- # 
+# --------------------------------------------------------------------------- #
 
-_tempNames = {0 : 'CellTemp1_4', 1 : 'CellTemp5_8', 2 : 'CellTemp9_12', 3 : 'CellTemp13_16', 4 : 'MOS_T', 5 : 'ENV_T' }
+_tempNames = {0: 'CellTemp1_4', 1: 'CellTemp5_8',
+              2: 'CellTemp9_12', 3: 'CellTemp13_16', 4: 'MOS_T', 5: 'ENV_T'}
+
 
 def checkBit(var, pos):
-    return (((var) & (1<<(pos))) != 0)
+    return (((var) & (1 << (pos))) != 0)
+
 
 def encodePylon_info(vi, bc):
     pylonData = {}
     pylonData["Version"] = vi.Version
     pylonData["BarCode"] = bc.Barcode
     return json.dumps(pylonData, sort_keys=False, separators=(',', ':'))
+
 
 def encodePylon_readings(decoded, ai):
     pylonData = {}
@@ -33,7 +37,7 @@ def encodePylon_readings(decoded, ai):
     for c in range(numberOfCells):
         cellData = {}
         cellData["Reading"] = decoded.CellVoltages[c]
-        if ai: # got alarm info?
+        if ai:  # got alarm info?
             cellData["State"] = ai.CellState[c]
         key = "Cell_{}"
         cells[key.format(c+1)] = cellData
@@ -41,23 +45,23 @@ def encodePylon_readings(decoded, ai):
     numberOfTemperatures = decoded.NumberOfTemperatures
     temperatures = {}
     for t in range(numberOfTemperatures):
-        if t < 6: #protect lookup
+        if t < 6:  # protect lookup
             temperatureData = {}
             temperatureData["Reading"] = decoded.GroupedCellsTemperatures[t]
-            if ai: # got alarm info?
+            if ai:  # got alarm info?
                 temperatureData["State"] = ai.CellsTemperatureStates[t]
             temperatures[_tempNames[t]] = temperatureData
     pylonData["Temps"] = temperatures
 
     current = {}
     current["Reading"] = decoded.Current
-    if ai: # got alarm info?
+    if ai:  # got alarm info?
         current["State"] = ai.CurrentState
     pylonData["PackCurrent"] = current
 
     voltage = {}
     voltage["Reading"] = decoded.Voltage
-    if ai: # got alarm info?
+    if ai:  # got alarm info?
         voltage["State"] = ai.VoltageState
     pylonData["PackVoltage"] = voltage
 
@@ -66,7 +70,7 @@ def encodePylon_readings(decoded, ai):
     pylonData["CycleCount"] = decoded.CycleNumber
     pylonData["SOC"] = decoded.StateOfCharge
     pylonData["Power"] = decoded.Power
-    if ai: # got alarm info?
+    if ai:  # got alarm info?
         pso = {}
         ProtectSts1 = ai.ProtectSts1
         ProtectSts2 = ai.ProtectSts2
@@ -128,4 +132,3 @@ def encodePylon_readings(decoded, ai):
         aso["CHG_OT"] = checkBit(AlarmSts2, 0)
         pylonData["Alarm_Status"] = aso
     return json.dumps(pylonData, sort_keys=False, separators=(',', ':'))
-
